@@ -235,5 +235,4 @@ redis-cli -p 6380 ZRANGE "{banking}:account:history:${ACCOUNT_NUMBER}" 0 -1
 - `/api/**` 요청 Body가 10KB를 초과하면 `413 Payload Too Large`가 반환됩니다.
 - Access Token은 Redis TTL로 관리되며 30일 후 자동 만료됩니다.
 - 출금과 이체는 Redis Lua Script로 잔액 변경과 거래내역 저장을 원자 처리합니다.
-=======
 
