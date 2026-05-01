@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: banking-mockup
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+server:
+  port: ${SERVER_PORT:8081}
+
+moaje:
+  banking:
+    secret: ${MOAJE_BANKING_SECRET:Moaje-banking-secret}
+    max-payload-bytes: 10240
+    fault-delay-millis: 5000
