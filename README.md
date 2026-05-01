@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Banking Mockup API 사용 가이드
 
 이 문서는 `banking-mockup` 목업 뱅킹 API 서버를 실행하고 호출하는 방법을 설명합니다.
@@ -237,5 +236,4 @@ redis-cli -p 6380 ZRANGE "{banking}:account:history:${ACCOUNT_NUMBER}" 0 -1
 - Access Token은 Redis TTL로 관리되며 30일 후 자동 만료됩니다.
 - 출금과 이체는 Redis Lua Script로 잔액 변경과 거래내역 저장을 원자 처리합니다.
 =======
-# moaje-mockup-banking
->>>>>>> 1ca0fdd4b14e73ff16f267872244800fa362e2e2
+
