@@ -5,6 +5,11 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 
+/**
+ * 인증 및 무결성 검사를 위한 Config
+ * HMAC
+ */
+
 @Configuration
 class AuthWebMvcConfig(
     private val hmacAndTokenInterceptor: HmacAndTokenInterceptor,

@@ -12,6 +12,9 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.time.Instant
 
+/**
+ * 이체 Controller
+ */
 @RestController
 @RequestMapping("/api/transfers")
 class TransferController(

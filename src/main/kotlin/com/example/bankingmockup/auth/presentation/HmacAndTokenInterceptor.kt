@@ -26,17 +26,20 @@ class HmacAndTokenInterceptor(
     ): Boolean {
         val body = request.bodyBytes()
 
+        // 데이터 본문의 크기가 10KB를 넘어가면 정상범주에서 벗어난 데이터로 간주
         if (request.contentLengthLong > maxPayloadBytes.toLong() || body.size > maxPayloadBytes) {
             response.sendError(HttpStatus.PAYLOAD_TOO_LARGE.value(), "Payload exceeds 10KB")
             return false
         }
 
+        // bearer token 없으면 검증실패
         val accessToken = request.bearerToken()
         if (accessToken == null) {
             response.sendError(HttpStatus.UNAUTHORIZED.value(), "Missing bearer token")
             return false
         }
 
+        // Redis session 내에 해당 token이 유효한지 (TTL 30분 이내로 들어오는 값인지) check
         val session = authTokenService.findSession(accessToken)
         if (session == null) {
             response.sendError(HttpStatus.UNAUTHORIZED.value(), "Invalid or expired access token")
@@ -44,6 +47,7 @@ class HmacAndTokenInterceptor(
         }
         request.setAttribute(AUTHENTICATED_CI_ATTRIBUTE, session.ci)
 
+        // signature 값이 불분명하면 검증 실패
         val signature = request.getHeader(SIGNATURE_HEADER)
         if (signature.isNullOrBlank() || !constantTimeEquals(signature.lowercase(), hmacSha256Hex(body))) {
             response.sendError(HttpStatus.UNAUTHORIZED.value(), "Invalid request signature")
@@ -53,6 +57,9 @@ class HmacAndTokenInterceptor(
         return handleFaultScenario(request, response)
     }
 
+    /**
+     * 엣지케이스(Edge-case) 테스트를 위해 request Header에 특정시나리오 값에 따라 분기
+     */
     private fun handleFaultScenario(
         request: HttpServletRequest,
         response: HttpServletResponse,
@@ -78,13 +85,18 @@ class HmacAndTokenInterceptor(
         }
     }
 
+    // HttpServletRequest 확장함수, 본문 body를 가져온다.
     private fun HttpServletRequest.bodyBytes(): ByteArray =
         if (this is CachedBodyRequestWrapper) {
-            cachedBody
+            cachedBody // 스마트 형변환
         } else {
             inputStream.readAllBytes()
         }
 
+    /**
+     * HttpServletRequest 확장잠수
+     * Request 헤더에서 bearer 부분의 Token 값을 가져온다.
+     */
     private fun HttpServletRequest.bearerToken(): String? {
         val authorization = getHeader(AUTHORIZATION_HEADER) ?: return null
         if (!authorization.startsWith(BEARER_PREFIX)) {

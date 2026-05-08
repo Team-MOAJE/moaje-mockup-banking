@@ -19,6 +19,10 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import java.time.Instant
 
+/**
+ * 계좌 등록/조회/출금 Controller
+ *
+ */
 @RestController
 @RequestMapping("/api/accounts")
 class AccountController(

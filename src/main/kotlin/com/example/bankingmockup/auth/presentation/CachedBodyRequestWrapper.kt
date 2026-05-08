@@ -11,6 +11,9 @@ import java.io.InputStreamReader
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
 
+/**
+ * Request로 요청된 데이터는 단 한번만 읽을 수 있기때문에, body를 caching 하는 wrapper class
+ */
 class CachedBodyRequestWrapper(
     request: HttpServletRequest,
 ) : ContentCachingRequestWrapper(request) {
@@ -37,6 +40,6 @@ private class CachedBodyServletInputStream(
     override fun isReady(): Boolean = true
 
     override fun setReadListener(listener: ReadListener?) {
-        // Synchronous mock API; async servlet reads are not used.
+        // 사용하지않음.
     }
 }

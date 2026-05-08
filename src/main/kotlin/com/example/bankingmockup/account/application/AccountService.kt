@@ -19,7 +19,7 @@ class AccountService(
     private val clock: Clock = Clock.systemUTC()
 
     fun register(command: RegisterAccountCommand): Account {
-        if (command.initialBalance < 0) {
+        if (command.initialBalance < 0) { // 최초 init 계좌금액이 0원 이하면 예외발생
             throw IllegalArgumentException("initialBalance must not be negative")
         }
 

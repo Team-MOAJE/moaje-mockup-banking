@@ -60,6 +60,18 @@ class RedisTransferRepository(
         }
     }
 
+    /**
+     * lua script 통해 Redis 제어
+     * lua script, 처리하는 내용
+     * 1. 출금 계좌 존재 확인
+     * 2. 입금 계좌 존재 확인
+     * 3. 양쪽 계좌 상태 ACTIVE 확인
+     * 4. 출금 계좌 잔액 충분 여부 확인
+     * 5. 출금 계좌 HINCRBY -amount
+     * 6. 입금 계좌 HINCRBY +amount
+     * 7. 출금 계좌 거래내역 ZADD
+     * 8. 입금 계좌 거래내역 ZADD
+     */
     companion object {
         private const val TRANSFER_SCRIPT = """
 local fromAccountKey = KEYS[1]
@@ -71,7 +83,7 @@ local score = tonumber(ARGV[2])
 local debitHistoryJson = ARGV[3]
 local creditHistoryJson = ARGV[4]
 
-if redis.call('EXISTS', fromAccountKey) == 0 then
+if redis.call('EXISTS', fromAccountKey) == 0 then 
   return 'FROM_NOT_FOUND'
 end
 

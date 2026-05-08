@@ -12,6 +12,11 @@ import org.springframework.web.bind.annotation.RestController
 class AuthController(
     private val authTokenService: AuthTokenService,
 ) {
+    /**
+     * AccessToken 발급 API
+     * 별다른 인증없이 token 요청 시, 30분간 유효한 토큰값이 발급된다.
+     *
+     */
     @PostMapping("/oauth/2.0/token")
     fun issue(@Valid @RequestBody request: IssueTokenRequest): IssueTokenResponse {
         val result = authTokenService.issue(request.toCommand())
