@@ -13,10 +13,12 @@ import java.nio.charset.StandardCharsets
 
 /**
  * Request로 요청된 데이터는 단 한번만 읽을 수 있기때문에, body를 caching 하는 wrapper class
+ * ContentCachingRequestWrapper : spring이 제공해주는 유틸리티 클래스로 Request를 Wrapper 하여 body를 캐싱할 수 있도록 해줌
  */
 class CachedBodyRequestWrapper(
     request: HttpServletRequest,
 ) : ContentCachingRequestWrapper(request) {
+    // 원본 Request 요청으로부터 body를 cachedBody에 담아둔다 (final)
     val cachedBody: ByteArray = StreamUtils.copyToByteArray(super.getInputStream())
 
     override fun getInputStream(): ServletInputStream =

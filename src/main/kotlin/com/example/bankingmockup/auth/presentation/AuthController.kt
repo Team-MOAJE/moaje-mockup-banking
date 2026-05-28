@@ -14,8 +14,6 @@ class AuthController(
 ) {
     /**
      * AccessToken 발급 API
-     * 별다른 인증없이 token 요청 시, 30분간 유효한 토큰값이 발급된다.
-     *
      */
     @PostMapping("/oauth/2.0/token")
     fun issue(@Valid @RequestBody request: IssueTokenRequest): IssueTokenResponse {

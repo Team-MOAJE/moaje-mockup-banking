@@ -23,11 +23,7 @@ class CachedBodyFilter : OncePerRequestFilter() {
         response: HttpServletResponse,
         filterChain: FilterChain,
     ) {
-        val wrappedRequest = if (request is CachedBodyRequestWrapper) {
-            request
-        } else {
-            CachedBodyRequestWrapper(request)
-        }
+        val wrappedRequest = request as? CachedBodyRequestWrapper ?: CachedBodyRequestWrapper(request)
 
         filterChain.doFilter(wrappedRequest, response)
     }
