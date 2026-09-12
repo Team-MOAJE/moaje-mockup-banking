@@ -11,6 +11,7 @@ data class TransactionHistory(
     val counterpartyBankCode: String? = null,
     val memo: String? = null,
     val createdAt: Instant,
+    val completedAtEpochMillis: Long? = null,
 ) {
     init {
         require(amount > 0) { "amount must be positive" }

@@ -3,7 +3,9 @@
 import java.time.Instant
 
 data class Account(
+    val providerAccountId: String,
     val accountNumber: String,
+    val ownerCi: String,
     val bankCode: String,
     val productName: String,
     val balance: Long,

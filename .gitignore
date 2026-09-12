@@ -1,2 +1,8 @@
 .gradle/
 build/
+.idea/dataSources.xml
+.idea/dataSources/
+.idea/dataSources.local.xml
+.env
+.env.*
+!.env.example

@@ -1,25 +1,40 @@
-name: banking-mockup
+name: moaje-mock-banking
 
 services:
-  mock-redis:
-    image: redis:7.2
-    container_name: mock-redis
+  mock-banking-redis:
+    image: redis:7.4-alpine
+    container_name: ${MOAJE_MOCK_PREFIX:-moaje-mock-banking}-redis
+    mem_limit: 128m
     ports:
-      - "6380:6379"
-    restart: unless-stopped
+      - "127.0.0.1:${MOCK_REDIS_PORT:-6380}:6379"
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "64mb", "--maxmemory-policy", "noeviction"]
+    volumes:
+      - mock-banking-redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: "no"
 
   mock-banking-api:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: mock-banking-api
+    container_name: ${MOAJE_MOCK_PREFIX:-moaje-mock-banking}-api
+    mem_limit: 512m
     depends_on:
-      - mock-redis
+      mock-banking-redis:
+        condition: service_healthy
     ports:
-      - "8081:8080"
+      - "127.0.0.1:${MOCK_API_PORT:-8081}:8081"
     environment:
-      SERVER_PORT: 8080
-      REDIS_HOST: mock-redis
+      JAVA_TOOL_OPTIONS: "-Xms64m -Xmx384m"
+      SERVER_PORT: 8081
+      REDIS_HOST: mock-banking-redis
       REDIS_PORT: 6379
       MOAJE_BANKING_SECRET: Moaje-banking-secret
-    restart: unless-stopped
+    restart: "no"
+
+volumes:
+  mock-banking-redis-data:

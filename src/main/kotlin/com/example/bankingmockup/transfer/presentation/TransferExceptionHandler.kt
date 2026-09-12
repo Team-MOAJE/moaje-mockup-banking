@@ -2,6 +2,7 @@
 
 import com.example.bankingmockup.transfer.domain.SameAccountTransferException
 import com.example.bankingmockup.transfer.domain.TransferBusinessException
+import com.example.bankingmockup.transfer.domain.TransferNotFoundByClientTransferIdException
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.ResponseStatus
@@ -14,6 +15,11 @@ class TransferExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     fun transferBusiness(exception: TransferBusinessException): TransferErrorResponse =
         TransferErrorResponse("TRANSFER_BUSINESS_ERROR", exception.message.orEmpty(), Instant.now())
+
+    @ExceptionHandler(TransferNotFoundByClientTransferIdException::class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    fun transferNotFound(exception: TransferNotFoundByClientTransferIdException): TransferErrorResponse =
+        TransferErrorResponse("TRANSFER_NOT_FOUND", exception.message.orEmpty(), Instant.now())
 }
 
 data class TransferErrorResponse(

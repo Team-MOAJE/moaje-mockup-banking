@@ -5,12 +5,15 @@ import com.example.bankingmockup.account.application.RegisterAccountCommand
 import com.example.bankingmockup.account.application.WithdrawCommand
 import com.example.bankingmockup.account.domain.Account
 import com.example.bankingmockup.account.domain.TransactionHistory
+import com.example.bankingmockup.auth.presentation.HmacAndTokenInterceptor
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotBlank
+import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -29,9 +32,11 @@ class AccountController(
     private val accountService: AccountService,
 ) {
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    fun register(@Valid @RequestBody request: RegisterAccountRequest): AccountResponse =
-        accountService.register(request.toCommand()).toResponse()
+    fun register(
+        servletRequest: HttpServletRequest,
+        @Valid @RequestBody request: RegisterAccountRequest,
+    ): AccountResponse =
+        accountService.register(request.toCommand(servletRequest.authenticatedCi())).toResponse()
 
     @DeleteMapping("/{accountNumber}")
     fun cancel(@PathVariable accountNumber: String): AccountResponse =
@@ -44,6 +49,21 @@ class AccountController(
     @GetMapping("/{accountNumber}/histories")
     fun histories(@PathVariable accountNumber: String): List<TransactionHistoryResponse> =
         accountService.findHistories(accountNumber).map { it.toResponse() }
+
+    @GetMapping("/providers/{providerAccountId}/snapshot")
+    fun snapshot(
+        @PathVariable providerAccountId: String,
+        @RequestParam(required = false, defaultValue = "1970-01-01T00:00:00Z") cursor: Instant,
+    ): ProviderAccountSnapshotResponse =
+        accountService.findSnapshot(providerAccountId, cursor).let { snapshot ->
+            ProviderAccountSnapshotResponse(
+                providerAccountId = snapshot.providerAccountId,
+                balance = snapshot.balance,
+                status = snapshot.status.name,
+                asOf = snapshot.asOf,
+                histories = snapshot.histories.map { it.toResponse().withoutAccountNumbers() },
+            )
+        }
 
     @PostMapping("/{accountNumber}/withdrawals")
     fun withdraw(
@@ -61,8 +81,9 @@ data class RegisterAccountRequest(
     @field:Min(0)
     val initialBalance: Long,
 ) {
-    fun toCommand(): RegisterAccountCommand =
+    fun toCommand(ownerCi: String): RegisterAccountCommand =
         RegisterAccountCommand(
+            ownerCi = ownerCi,
             bankCode = bankCode,
             productName = productName,
             initialBalance = initialBalance,
@@ -78,7 +99,9 @@ data class WithdrawRequest(
         WithdrawCommand(amount = amount, memo = memo)
 }
 
+
 data class AccountResponse(
+    val providerAccountId: String,
     val accountNumber: String,
     val bankCode: String,
     val productName: String,
@@ -86,6 +109,14 @@ data class AccountResponse(
     val status: String,
     val createdAt: Instant,
     val canceledAt: Instant?,
+)
+
+data class ProviderAccountSnapshotResponse(
+    val providerAccountId: String,
+    val balance: Long,
+    val status: String,
+    val asOf: Instant,
+    val histories: List<TransactionHistoryResponse>,
 )
 
 data class TransactionHistoryResponse(
@@ -97,10 +128,12 @@ data class TransactionHistoryResponse(
     val counterpartyBankCode: String?,
     val memo: String?,
     val createdAt: Instant,
+    val completedAtEpochMillis: Long? = null,
 )
 
 private fun Account.toResponse(): AccountResponse =
     AccountResponse(
+        providerAccountId = providerAccountId,
         accountNumber = accountNumber,
         bankCode = bankCode,
         productName = productName,
@@ -109,6 +142,9 @@ private fun Account.toResponse(): AccountResponse =
         createdAt = createdAt,
         canceledAt = canceledAt,
     )
+
+private fun TransactionHistoryResponse.withoutAccountNumbers(): TransactionHistoryResponse =
+    copy(accountNumber = "", counterpartyAccountNumber = null)
 
 private fun TransactionHistory.toResponse(): TransactionHistoryResponse =
     TransactionHistoryResponse(
@@ -120,4 +156,9 @@ private fun TransactionHistory.toResponse(): TransactionHistoryResponse =
         counterpartyBankCode = counterpartyBankCode,
         memo = memo,
         createdAt = createdAt,
+        completedAtEpochMillis = completedAtEpochMillis,
     )
+
+private fun HttpServletRequest.authenticatedCi(): String =
+    getAttribute(HmacAndTokenInterceptor.AUTHENTICATED_CI_ATTRIBUTE) as? String
+        ?: throw IllegalStateException("Authenticated CI is required")
