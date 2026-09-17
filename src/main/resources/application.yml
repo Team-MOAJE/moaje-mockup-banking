@@ -10,6 +10,9 @@ server:
   port: ${SERVER_PORT:8081}
 
 moaje:
+  fixture:
+    enabled: ${MOAJE_FIXTURE_ENABLED:false}
+    admin-token: ${MOAJE_FIXTURE_ADMIN_TOKEN:}
   banking:
     secret: ${MOAJE_BANKING_SECRET:Moaje-banking-secret}
     max-payload-bytes: 10240
