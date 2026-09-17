@@ -9,6 +9,7 @@ data class TransactionHistory(
     val amount: Long,
     val counterpartyAccountNumber: String? = null,
     val counterpartyBankCode: String? = null,
+    val merchantName: String? = null,
     val memo: String? = null,
     val createdAt: Instant,
     val completedAtEpochMillis: Long? = null,

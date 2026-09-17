@@ -93,10 +93,11 @@ data class RegisterAccountRequest(
 data class WithdrawRequest(
     @field:Min(1)
     val amount: Long,
+    val merchantName: String? = null,
     val memo: String? = null,
 ) {
     fun toCommand(): WithdrawCommand =
-        WithdrawCommand(amount = amount, memo = memo)
+        WithdrawCommand(amount = amount, merchantName = merchantName, memo = memo)
 }
 
 
@@ -126,6 +127,7 @@ data class TransactionHistoryResponse(
     val amount: Long,
     val counterpartyAccountNumber: String?,
     val counterpartyBankCode: String?,
+    val merchantName: String?,
     val memo: String?,
     val createdAt: Instant,
     val completedAtEpochMillis: Long? = null,
@@ -154,6 +156,7 @@ private fun TransactionHistory.toResponse(): TransactionHistoryResponse =
         amount = amount,
         counterpartyAccountNumber = counterpartyAccountNumber,
         counterpartyBankCode = counterpartyBankCode,
+        merchantName = merchantName,
         memo = memo,
         createdAt = createdAt,
         completedAtEpochMillis = completedAtEpochMillis,

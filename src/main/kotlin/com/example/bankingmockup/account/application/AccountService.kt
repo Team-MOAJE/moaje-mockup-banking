@@ -81,6 +81,7 @@ class AccountService(
             accountNumber = accountNumber,
             type = TransactionType.WITHDRAWAL,
             amount = command.amount,
+            merchantName = command.merchantName,
             memo = command.memo,
             createdAt = Instant.now(clock),
         )
@@ -120,5 +121,6 @@ data class RegisterAccountCommand(
 
 data class WithdrawCommand(
     val amount: Long,
+    val merchantName: String? = null,
     val memo: String?,
 )
