@@ -69,9 +69,39 @@ class RedisSnapshotCursorIntegrationTest {
         assertThat(after.histories.single().completedAtEpochMillis).isGreaterThanOrEqualTo(before.asOf.toEpochMilli())
     }
 
+    @Test
+    @DisplayName("Redis 저장과 원자적 스냅샷 조회에서 은행 정보를 유지한다")
+    fun bankInformationSurvivesRedisRoundTrip() {
+        // given
+        val account = account(10_000)
+        // when
+        val stored = accounts.findByAccountNumber(account.accountNumber)!!
+        val snapshot = accounts.findSnapshotByProviderAccountId(account.providerAccountId, 0)!!
+        // then: 실제 Lua 응답도 검사해 HTTP 응답 이전의 누락을 발견한다.
+        assertThat(stored.bankCode).isEqualTo("TEST")
+        assertThat(stored.bankName).isEqualTo("테스트 은행")
+        assertThat(snapshot.bankCode).isEqualTo("TEST")
+        assertThat(snapshot.bankName).isEqualTo("테스트 은행")
+    }
+
+    @Test
+    @DisplayName("은행명이 없는 기존 Redis 계좌도 이름을 추측하지 않고 조회한다")
+    fun legacyAccountWithoutBankNameRemainsReadable() {
+        // given: 필드 추가 전의 Redis 데이터를 재현한다.
+        val account = account(0)
+        redis.opsForHash<String, String>().delete(RedisAccountKeys.account(account.accountNumber), "bankName")
+        // when
+        val stored = accounts.findByAccountNumber(account.accountNumber)!!
+        val snapshot = accounts.findSnapshotByProviderAccountId(account.providerAccountId, 0)!!
+        // then
+        assertThat(stored.bankName).isNull()
+        assertThat(snapshot.bankName).isNull()
+        assertThat(snapshot.bankCode).isEqualTo("TEST")
+    }
+
     private fun account(balance: Long): Account {
         val id = "test-${UUID.randomUUID()}"
-        val account = Account(id, id, id, "TEST", id, balance, AccountStatus.ACTIVE, Instant.now())
+        val account = Account(id, id, id, "TEST", id, balance, AccountStatus.ACTIVE, Instant.now(), bankName = "테스트 은행")
         ownedKeys += RedisAccountKeys.account(id)
         ownedKeys += RedisAccountKeys.history(id)
         ownedKeys += RedisAccountKeys.providerAccountIndex(id)

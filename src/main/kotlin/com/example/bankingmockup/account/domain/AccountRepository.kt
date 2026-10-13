@@ -19,4 +19,6 @@ data class AccountSnapshot(
     val status: AccountStatus,
     val asOf: Instant,
     val histories: List<TransactionHistory>,
+    val bankCode: String? = null,
+    val bankName: String? = null,
 )

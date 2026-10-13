@@ -122,6 +122,8 @@ class RedisAccountRepository(
         val json = objectMapper.readTree(raw)
         return AccountSnapshot(
             providerAccountId = providerAccountId,
+            bankCode = json.path("bankCode").asText().takeIf(String::isNotBlank),
+            bankName = json.path("bankName").asText().takeIf(String::isNotBlank),
             balance = json.path("balance").asLong(),
             status = AccountStatus.valueOf(json.path("status").asText()),
             asOf = Instant.ofEpochMilli(json.path("asOfEpochMillis").asLong()),
@@ -137,6 +139,7 @@ class RedisAccountRepository(
             put("accountNumber", accountNumber)
             put("ownerCi", ownerCi)
             put("bankCode", bankCode)
+            bankName?.let { put("bankName", it) }
             put("productName", productName)
             put("balance", balance.toString())
             put("status", status.name)
@@ -154,6 +157,7 @@ class RedisAccountRepository(
             accountNumber = getValue("accountNumber"),
             ownerCi = this["ownerCi"].orEmpty(),
             bankCode = getValue("bankCode"),
+            bankName = this["bankName"],
             productName = getValue("productName"),
             balance = getValue("balance").toLong(),
             status = AccountStatus.valueOf(getValue("status")),
@@ -222,6 +226,8 @@ local asOfEpochMillis = tonumber(redisTime[1]) * 1000 + math.floor(tonumber(redi
 local histories = redis.call('ZRANGEBYSCORE', historyKey, cursor, asOfEpochMillis)
 
 return cjson.encode({
+  bankCode = redis.call('HGET', accountKey, 'bankCode') or '',
+  bankName = redis.call('HGET', accountKey, 'bankName') or '',
   balance = tonumber(redis.call('HGET', accountKey, 'balance')),
   status = redis.call('HGET', accountKey, 'status'),
   asOfEpochMillis = asOfEpochMillis,

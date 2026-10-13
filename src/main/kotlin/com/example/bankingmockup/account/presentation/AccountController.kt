@@ -9,6 +9,7 @@ import com.example.bankingmockup.auth.presentation.HmacAndTokenInterceptor
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.Size
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -62,6 +63,8 @@ class AccountController(
                 status = snapshot.status.name,
                 asOf = snapshot.asOf,
                 histories = snapshot.histories.map { it.toResponse().withoutAccountNumbers() },
+                bankCode = snapshot.bankCode,
+                bankName = snapshot.bankName,
             )
         }
 
@@ -75,7 +78,11 @@ class AccountController(
 
 data class RegisterAccountRequest(
     @field:NotBlank
+    @field:Size(max = 20)
     val bankCode: String,
+    @field:NotBlank
+    @field:Size(max = 100)
+    val bankName: String,
     @field:NotBlank
     val productName: String,
     @field:Min(0)
@@ -84,7 +91,8 @@ data class RegisterAccountRequest(
     fun toCommand(ownerCi: String): RegisterAccountCommand =
         RegisterAccountCommand(
             ownerCi = ownerCi,
-            bankCode = bankCode,
+            bankCode = bankCode.trim(),
+            bankName = bankName.trim(),
             productName = productName,
             initialBalance = initialBalance,
         )
@@ -110,6 +118,7 @@ data class AccountResponse(
     val status: String,
     val createdAt: Instant,
     val canceledAt: Instant?,
+    val bankName: String?,
 )
 
 data class ProviderAccountSnapshotResponse(
@@ -118,6 +127,8 @@ data class ProviderAccountSnapshotResponse(
     val status: String,
     val asOf: Instant,
     val histories: List<TransactionHistoryResponse>,
+    val bankCode: String?,
+    val bankName: String?,
 )
 
 data class TransactionHistoryResponse(
@@ -143,6 +154,7 @@ private fun Account.toResponse(): AccountResponse =
         status = status.name,
         createdAt = createdAt,
         canceledAt = canceledAt,
+        bankName = bankName,
     )
 
 private fun TransactionHistoryResponse.withoutAccountNumbers(): TransactionHistoryResponse =

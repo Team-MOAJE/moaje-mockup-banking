@@ -12,6 +12,7 @@ data class Account(
     val status: AccountStatus,
     val createdAt: Instant,
     val canceledAt: Instant? = null,
+    val bankName: String? = null,
 ) {
     init {
         require(balance >= 0) { "balance must not be negative" }
