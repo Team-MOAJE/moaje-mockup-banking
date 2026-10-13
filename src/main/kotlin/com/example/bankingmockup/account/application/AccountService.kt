@@ -38,6 +38,7 @@ class AccountService(
             bankCode = command.bankCode,
             productName = command.productName,
             balance = command.initialBalance,
+            bankName = command.bankName,
             status = AccountStatus.ACTIVE,
             createdAt = Instant.now(clock),
         )
@@ -117,6 +118,7 @@ data class RegisterAccountCommand(
     val bankCode: String,
     val productName: String,
     val initialBalance: Long,
+    val bankName: String,
 )
 
 data class WithdrawCommand(

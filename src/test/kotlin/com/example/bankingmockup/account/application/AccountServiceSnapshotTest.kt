@@ -13,6 +13,21 @@ import java.time.Instant
 @DisplayName("Mock Banking provider 계좌 Snapshot")
 class AccountServiceSnapshotTest {
     @Test
+    @DisplayName("계좌 생성 요청의 은행 코드와 은행명을 그대로 저장한다")
+    fun preservesBankInformation() {
+        // given: 001이 아닌 코드로 고정값 사용 여부를 확인한다.
+        val service = AccountService(SnapshotRepository())
+        val command = RegisterAccountCommand("test-owner", "088", "test-product", 0, "테스트 은행")
+
+        // when
+        val account = service.register(command)
+
+        // then
+        assertThat(account.bankCode).isEqualTo("088")
+        assertThat(account.bankName).isEqualTo("테스트 은행")
+    }
+
+    @Test
     @DisplayName("외부 출금의 가맹점명을 원장 거래내역에 보존한다")
     fun preservesMerchantNameOnWithdrawal() {
         // given: Asset이 카테고리를 분류할 때 사용할 원본 가맹점명이다.
