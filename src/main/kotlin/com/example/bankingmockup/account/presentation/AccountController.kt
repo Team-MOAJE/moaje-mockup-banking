@@ -65,8 +65,14 @@ class AccountController(
                 histories = snapshot.histories.map { it.toResponse().withoutAccountNumbers() },
                 bankCode = snapshot.bankCode,
                 bankName = snapshot.bankName,
+                maskedAccountNumber = snapshot.maskedAccountNumber,
             )
         }
+
+    // 계좌번호를 모르는 채널계가 provider ID로 조회한다. 기존 HMAC·토큰 검증을 그대로 거친다.
+    @GetMapping("/providers/{providerAccountId}")
+    fun getProviderAccount(@PathVariable providerAccountId: String): AccountResponse =
+        accountService.findProviderAccount(providerAccountId).toResponse()
 
     @PostMapping("/{accountNumber}/withdrawals")
     fun withdraw(
@@ -129,6 +135,7 @@ data class ProviderAccountSnapshotResponse(
     val histories: List<TransactionHistoryResponse>,
     val bankCode: String?,
     val bankName: String?,
+    val maskedAccountNumber: String?,
 )
 
 data class TransactionHistoryResponse(

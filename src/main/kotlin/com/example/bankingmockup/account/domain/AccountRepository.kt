@@ -21,4 +21,5 @@ data class AccountSnapshot(
     val histories: List<TransactionHistory>,
     val bankCode: String? = null,
     val bankName: String? = null,
+    val maskedAccountNumber: String? = null,
 )

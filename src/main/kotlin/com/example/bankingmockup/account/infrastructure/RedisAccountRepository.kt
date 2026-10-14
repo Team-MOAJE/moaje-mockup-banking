@@ -124,6 +124,9 @@ class RedisAccountRepository(
             providerAccountId = providerAccountId,
             bankCode = json.path("bankCode").asText().takeIf(String::isNotBlank),
             bankName = json.path("bankName").asText().takeIf(String::isNotBlank),
+            // 스냅샷에는 계좌번호 끝 네 자리만 제공해 채널·조회 서비스로 원번호가 퍼지지 않게 한다.
+            maskedAccountNumber = if (accountNumber.length <= 4) "*".repeat(accountNumber.length)
+                else "*".repeat(accountNumber.length - 4) + accountNumber.takeLast(4),
             balance = json.path("balance").asLong(),
             status = AccountStatus.valueOf(json.path("status").asText()),
             asOf = Instant.ofEpochMilli(json.path("asOfEpochMillis").asLong()),

@@ -82,6 +82,9 @@ class RedisSnapshotCursorIntegrationTest {
         assertThat(stored.bankName).isEqualTo("테스트 은행")
         assertThat(snapshot.bankCode).isEqualTo("TEST")
         assertThat(snapshot.bankName).isEqualTo("테스트 은행")
+        val expectedMask = "*".repeat(account.accountNumber.length - 4) + account.accountNumber.takeLast(4)
+        assertThat(snapshot.maskedAccountNumber).isEqualTo(expectedMask)
+        assertThat(snapshot.maskedAccountNumber).isNotEqualTo(account.accountNumber)
     }
 
     @Test

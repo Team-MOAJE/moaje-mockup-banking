@@ -64,6 +64,10 @@ class AccountService(
         return accountRepository.findHistories(accountNumber)
     }
 
+    fun findProviderAccount(providerAccountId: String): Account =
+        accountRepository.findByProviderAccountId(providerAccountId)
+            ?: throw AccountNotFoundException(providerAccountId)
+
     /**
      * providerAccountId는 실제 계좌번호를 외부 채널계에 노출하지 않고 계정계 계좌를 참조하기 위한 불투명 식별자다.
      * Snapshot은 Redis의 단일 원자 연산으로 잔액과 증분 거래내역을 함께 읽어 서로 다른 시점의 데이터를 섞지 않는다.
