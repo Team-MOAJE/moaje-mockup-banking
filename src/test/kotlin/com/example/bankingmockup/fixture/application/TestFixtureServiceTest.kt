@@ -57,6 +57,29 @@ class TestFixtureServiceTest {
         assertThat(repository.histories).hasSize(24)
     }
 
+    @Test
+    @DisplayName("월 40건씩 3개월을 생성해 무한 스크롤용 120건을 준비한다")
+    fun createsScrollableFixture() {
+        // given: 화면에서 선택한 거래량을 하나의 생성 요청으로 전달한다.
+        val command = command().copy(transactionsPerMonth = 40)
+        // when
+        val result = service.generate(command)
+        // then: 서로 다른 ID와 현재 시각 이하의 거래만 저장된다.
+        assertThat(result.createdTransactionCount).isEqualTo(120)
+        assertThat(repository.histories.map { it.transactionId }.distinct()).hasSize(120)
+        assertThat(repository.histories.all { !it.createdAt.isAfter(Instant.parse("2026-09-18T09:00:00Z")) }).isTrue()
+        assertThat(service.generate(command).createdTransactionCount).isZero()
+    }
+
+    @Test
+    @DisplayName("월 80건도 유효한 시각으로 생성하며 지원하지 않는 거래량은 거절한다")
+    fun validatesVolume() {
+        assertThat(service.generate(command().copy(transactionsPerMonth = 80)).createdTransactionCount).isEqualTo(240)
+        org.assertj.core.api.Assertions.assertThatThrownBy {
+            service.generate(command().copy(transactionsPerMonth = 9))
+        }.isInstanceOf(IllegalArgumentException::class.java)
+    }
+
     private fun command() = GeneratePersonaFixtureCommand(
         fixtureRunId = "run-1",
         ownerCi = account.ownerCi,

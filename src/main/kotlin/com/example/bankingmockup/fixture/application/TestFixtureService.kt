@@ -24,6 +24,7 @@ data class GeneratePersonaFixtureCommand(
     val productName: String,
     val persona: FixturePersona,
     val months: Int,
+    val transactionsPerMonth: Int = 8,
 )
 
 data class PersonaFixtureResult(
@@ -46,6 +47,9 @@ class TestFixtureService(
      */
     fun generate(command: GeneratePersonaFixtureCommand): PersonaFixtureResult {
         require(command.months in 1..6) { "months must be between 1 and 6" }
+        require(command.transactionsPerMonth in 8..80 && command.transactionsPerMonth % 8 == 0) {
+            "transactionsPerMonth must be a multiple of 8 between 8 and 80"
+        }
 
         val account = accountRepository.findActiveByOwnerCiAndBankCodeAndProductName(
             command.ownerCi,
@@ -61,7 +65,9 @@ class TestFixtureService(
 
         val targetMonths = (command.months - 1 downTo 0).map { currentMonth.minusMonths(it.toLong()) }
         targetMonths.forEach { month ->
-            templates.forEachIndexed { index, template ->
+            // 한 요청에서 거래량을 늘려야 스냅샷 커서가 전진한 뒤 과거 거래를 추가하는 누락을 피할 수 있다.
+            // 8개 소비 항목을 반복하여 50건 단위 스크롤도 시연하되, 거래 식별자는 실행별로 고정한다.
+            List(command.transactionsPerMonth) { templates[it % templates.size] }.forEachIndexed { index, template ->
                 val transactionId = "fixture:${command.fixtureRunId}:$month:$index"
                 if (!existingIds.add(transactionId)) {
                     skipped++
@@ -102,8 +108,10 @@ class TestFixtureService(
     ): Instant {
         val currentDay = currentInstant.atZone(ZoneOffset.UTC).dayOfMonth
         val availableLastDay = if (month == currentMonth) currentDay else month.lengthOfMonth()
-        val day = minOf(2 + index * 3, availableLastDay)
-        return month.atDay(day).atTime(12, 0, index).toInstant(ZoneOffset.UTC)
+        val day = 1 + index % availableLastDay
+        val proposed = month.atDay(day).atTime(12, index / 60, index % 60).toInstant(ZoneOffset.UTC)
+        // 당일 정오 전 생성해도 미래 시각의 거래가 생기지 않도록 현재 시각을 상한으로 둔다.
+        return minOf(proposed, currentInstant)
     }
 
     private data class TransactionTemplate(

@@ -57,6 +57,7 @@ data class GeneratePersonaFixtureRequest(
     @field:NotBlank val productName: String,
     val persona: FixturePersona = FixturePersona.BALANCED_STUDENT,
     @field:Min(1) @field:Max(6) val months: Int = 3,
+    @field:Min(8) @field:Max(80) val transactionsPerMonth: Int = 8,
 ) {
     fun toCommand() = GeneratePersonaFixtureCommand(
         fixtureRunId = fixtureRunId,
@@ -65,5 +66,6 @@ data class GeneratePersonaFixtureRequest(
         productName = productName,
         persona = persona,
         months = months,
+        transactionsPerMonth = transactionsPerMonth,
     )
 }
