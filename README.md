@@ -2,7 +2,6 @@
 
 모아제의 실습용 계정계입니다. 전용 Redis에서 실제 계좌 잔액과 거래 결과를 관리하며 Banking에 송금 결과·계좌 스냅샷을 제공합니다.
 
-- [개발 기록과 검증 결과](https://github.com/Team-MOAJE/moaje-infra/blob/main/docs/phase-history-and-retrospective.md)
 - [공개 문서와 ADR](https://github.com/Team-MOAJE/moaje-infra/blob/main/docs/README.md)
 - [로컬 통합 실행](https://github.com/Team-MOAJE/moaje-infra/blob/main/readMe.md)
 
